@@ -1,0 +1,18 @@
+<?php
+require_once('db.php');
+
+$channels = ['#channel1', '#channel2'];
+$quotesPerPage = 100;
+
+$dbhostname = "";
+$dbusername = "";
+$dbpassword = '';
+$dbdatabase = "";
+define('DB_SERVER', $dbhostname);
+define('DB_USER', $dbusername);
+define('DB_PASSWORD', $dbpassword);
+define('DB_NAME', $dbdatabase);
+//Avoid variable collisions
+unset($dbhostname, $dbusername, $dbpassword, $dbdatabase);
+
+$sdb = new SimpleDB(DB_NAME, DB_USER, DB_PASSWORD, DB_SERVER);

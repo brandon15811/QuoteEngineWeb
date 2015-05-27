@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}#{{activeChannel}} quotes{% endblock %}
+
+{% macro genFullLink(channel, filter, page) %}
+    {% set pageHref = {'channel': channel, 'filter': filter, 'page': page} %}
+    ?{{ pageHref | url_encode }}
+{% endmacro %}
+{% import _self as helpers %}
+
+{% block navbar %}
+    <nav class="navbar navbar-default">
+      <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="?{{ {'channel': activeChannel} | url_encode}}">#{{activeChannel}}</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <ul class="nav navbar-nav">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Other Channels <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                {% for channel in channels %}
+                {% if channel == activeChannel %}
+                <li class="active">
+                {% else %}
+                <li>
+                {% endif %}
+                    <a href="?{{ {'channel': channel} | url_encode}}">#{{channel}}</a>
+                </li>
+                {% endfor %}
+              </ul>
+            </li>
+          </ul>
+          <form class="navbar-form navbar-left" role="search" method="GET">
+            <div class="form-group">
+              <input value="{{filter}}" name="filter" type="text" class="form-control" placeholder="Quote Search">
+              <input type="hidden" name="channel" value="{{activeChannel}}">
+            </div>
+            <button type="submit" class="btn btn-default">Search</button>
+          </form>
+        </div><!-- /.navbar-collapse -->
+      </div><!-- /.container-fluid -->
+    </nav>
+{% endblock %}
+
+{% block pagination %}
+<nav>
+  <ul class="pagination">
+    {% if currentPage != 1 %}
+    <li>
+      <a href="{{helpers.genFullLink(activeChannel, filter, currentPage - 1)}}" aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
+    {% endif %}
+    {% set page = 0 %}
+    {% if quoteCount < 100  %}
+        {% set page = 1 %}
+        <li><a href="{{helpers.genFullLink(activeChannel, filter, page)}}">{{page}}</a></li>
+    {% else %}
+        {% for i in range(0, quoteCount, 100) %}
+            {% set page = page + 1 %}
+            <li><a href="{{helpers.genFullLink(activeChannel, filter, page)}}">{{page}}</a></li>
+        {% endfor %}
+    {% endif %}
+    {% if currentPage != page %}
+    <li>
+      <a href="{{helpers.genFullLink(activeChannel, filter, currentPage + 1)}}" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+    {% endif %}
+  </ul>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="well">
+        {{ block('pagination') }}
+        <table class="table table-striped">
+            <tr>
+                <th>
+                    #
+                </th>
+                <th>
+                    Added By
+                </th>
+                <th>
+                    Date
+                </th>
+                <th>
+                    Quote
+                </th>
+            </tr>
+            {% for quote in quotes %}
+            <tr>
+                <td>
+                    <a name="{{quote.id}}"></a><a href="#{{quote.id}}">{{quote.id}}</a></td>
+                </td>
+                <td>
+                    {{quote.nick}}
+                </td>
+                <td>
+                    {{quote.timestamp | date("j M y H:i")}}
+                </td>
+                <td>
+                    {% for message in quote.quote %}
+                        <strong>{{message.nick}}</strong> {{message.message}}
+                        <br>
+                    {% endfor %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        {{ block('pagination') }}
+    </div>
+    <div class="row">
+        {% for key, stat in stats %}
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Top 5 {{key|capitalize}} (on this page)</h3>
+                </div>
+                <ul class="list-group">
+                    {% for user, count in stat %}
+                    <li class="list-group-item">
+                        <span class="badge">{{count}}</span>
+                        {{user}}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
